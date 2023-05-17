@@ -30,16 +30,17 @@ jobs:
 
       - name: Upload SQL files to Azure Synapse
         run: |
-         $localFolderPath = "\sqlfiles"
-         $workspaceName = "satya-synapse-demo"
-         $sqlPoolName = "Built-in"
-         $databaseName = "RAMS-demo"
-         $scriptFiles = Get-ChildItem -Path $localFolderPath -Filter *.sql -File
+          $localFolderPath = "/sqlfiles"
+          $workspaceName = "satya-synapse-demo"
+          $sqlPoolName = "Built-in"
+          $databaseName = "RAMS-demo"
+          $scriptFiles = Get-ChildItem -Path $localFolderPath -Filter *.sql -File
 
-         foreach ($scriptFile in $scriptFiles) {
-          $scriptFilePath = $scriptFile.FullName
-          Set-AzSynapseSqlScript -WorkspaceName $workspaceName -SqlPoolName $sqlPoolName -SqlDatabaseName $databaseName -DefinitionFile $scriptFilePath
+          foreach ($scriptFile in $scriptFiles) {
+            $scriptFilePath = $scriptFile.FullName
+            Set-AzSynapseSqlScript -WorkspaceName $workspaceName -SqlPoolName $sqlPoolName -SqlDatabaseName $databaseName -DefinitionFile $scriptFilePath
 
-          Write-Host "Uploaded script file: $scriptFilePath"
+            Write-Host "Uploaded script file: $scriptFilePath"
           }
+          
           Write-Host "SUCCESS"
