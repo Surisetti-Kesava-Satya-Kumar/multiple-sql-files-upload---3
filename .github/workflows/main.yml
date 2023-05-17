@@ -1,0 +1,45 @@
+name: Upload SQL to Azure Synapse
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  upload-sql:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Azure PowerShell
+        run: |
+          # Install Azure PowerShell module
+          Install-Module -Name Az -Force -AllowClobber
+
+          # Import Azure PowerShell module
+          Import-Module -Name Az -Force
+
+      - name: Azure login
+        run: |
+          # Authenticate with Azure
+          $securePassword = ConvertTo-SecureString -String ${{ secrets.AZURE_PASSWORD }} -AsPlainText -Force
+          $credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ${{ secrets.AZURE_USERNAME }}, $securePassword
+          Connect-AzAccount -Credential $credential
+
+      - name: Upload SQL files to Azure Synapse
+        run: |
+         $localFolderPath = "\sqlfiles"
+         $workspaceName = "satya-synapse-demo"
+         $sqlPoolName = "Built-in"
+         $databaseName = "RAMS-demo"
+         $scriptFiles = Get-ChildItem -Path $localFolderPath -Filter *.sql -File
+
+         foreach ($scriptFile in $scriptFiles) {
+          $scriptFilePath = $scriptFile.FullName
+          Set-AzSynapseSqlScript -WorkspaceName $workspaceName -SqlPoolName $sqlPoolName -SqlDatabaseName $databaseName -DefinitionFile $scriptFilePath
+
+          Write-Host "Uploaded script file: $scriptFilePath"
+          }
+          Write-Host "SUCCESS"
