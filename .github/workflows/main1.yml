@@ -1,0 +1,39 @@
+name: Upload SQL to Azure Synapse
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  upload-sql:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Azure CLI
+        uses: azure/cli@v1
+
+      - name: Azure login
+        run: |
+          # Authenticate with Azure
+          az login --service-principal --username ${{ secrets.AZURE_CLIENT_ID }} --password ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
+
+      - name: Upload SQL files to Azure Synapse
+        run: |
+          $localFolderPath = "/sqlfiles"
+          $workspaceName = "satya-synapse-demo"
+          $sqlPoolName = "Built-in"
+          $databaseName = "RAMS-demo"
+          $scriptFiles = Get-ChildItem -Path $localFolderPath -Filter *.sql -File
+
+          foreach ($scriptFile in $scriptFiles) {
+            $scriptFilePath = $scriptFile.FullName
+            az synapse sql script set --workspace-name $workspaceName --sql-pool-name $sqlPoolName --database-name $databaseName --name $scriptFilePath --content @$scriptFilePath
+
+            Write-Host "Uploaded script file: $scriptFilePath"
+          }
+          
+          Write-Host "SUCCESS"
